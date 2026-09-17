@@ -15,10 +15,7 @@ const filasSimples: Array<{ id: string; etiqueta: string }> = [
   { id: 'energia', etiqueta: 'Energía' },
 ];
 
-const filasFinales: Array<{ id: string; etiqueta: string }> = [
-  { id: 'alumbrado', etiqueta: 'Alumbrado público' },
-  { id: 'aseo', etiqueta: 'Aseo' },
-];
+const filasFinales: Array<{ id: string; etiqueta: string }> = [{ id: 'aseo', etiqueta: 'Aseo' }];
 ---
 
 {
@@ -47,6 +44,10 @@ const filasFinales: Array<{ id: string; etiqueta: string }> = [
           <span id={`${prefijo}-ajuste-etiqueta`}>Ajuste por estrato</span>
           <span id={`${prefijo}-ajuste`}>—</span>
         </div>
+        <div class="fila-desglose">
+          <span id={`${prefijo}-alumbrado-etiqueta`}>Alumbrado público</span>
+          <span id={`${prefijo}-alumbrado`}>—</span>
+        </div>
         {filasFinales.map((fila) => (
           <div class="fila-desglose">
             <span>{fila.etiqueta}</span>
@@ -72,6 +73,10 @@ const filasFinales: Array<{ id: string; etiqueta: string }> = [
         <div class="fila-desglose" id={`${prefijo}-ajuste-fila`}>
           <span id={`${prefijo}-ajuste-etiqueta`}>Ajuste por estrato</span>
           <span id={`${prefijo}-ajuste`}>—</span>
+        </div>
+        <div class="fila-desglose">
+          <span id={`${prefijo}-alumbrado-etiqueta`}>Alumbrado público</span>
+          <span id={`${prefijo}-alumbrado`}>—</span>
         </div>
         {filasFinales.map((fila) => (
           <div class="fila-desglose">

@@ -130,3 +130,56 @@ export interface ErrorValidacion {
   /** Mensaje en espaniol, redactado para el usuario final. */
   mensaje: string;
 }
+
+/**
+ * Un mes ya cerrado, guardado en el historial local del usuario.
+ *
+ * Clave de diseno: las tarifas (`costoUnitarioKwh`, `ajustePorEstratoPct`,
+ * `ajustePorKwh`, `alumbradoPublicoPct`, `valorAseo`, etc.) se congelan dentro
+ * de cada registro en vez de leerse de una configuracion global, porque el
+ * costo unitario cambia todos los meses. Un historico que solo guardara el
+ * consumo y el total, sin las tarifas que los produjeron, no se podria
+ * recalcular ni auditar despues: perderia la unica evidencia de "con que
+ * tarifa salio este numero". Guardar la tarifa completa por mes es lo que
+ * permite, mas adelante, comparar meses entre si o detectar un cambio de
+ * tarifa por parte del operador.
+ */
+export interface RegistroMes {
+  /** Identificador unico del registro (UUID o timestamp+random como fallback). */
+  id: string;
+  /** Nombre para mostrar, ej: "Agosto 2026". Derivado de `fechaLectura`. */
+  etiqueta: string;
+  /** Fecha en que arranco el ciclo de facturacion, `yyyy-mm-dd`. */
+  fechaInicioCiclo: string;
+  /** Fecha en que se tomo la lectura de cierre de este registro, `yyyy-mm-dd`. */
+  fechaLectura: string;
+  /** Duracion total del ciclo de facturacion en dias. */
+  diasCiclo: number;
+  /** Lectura acumulada del medidor al cierre del ciclo anterior, en kWh. */
+  lecturaAnterior?: number;
+  /** Lectura acumulada del medidor al cierre de este ciclo, en kWh. */
+  lecturaActual?: number;
+  /** Consumo del periodo en kWh. */
+  consumoKwh: number;
+  /** Costo unitario de la energia en $/kWh vigente ese mes, congelado en el registro. */
+  costoUnitarioKwh: number;
+  /** Como se interpreta `ajustePorEstratoPct` (o `ajustePorKwh`) para este registro. */
+  modoAjuste: ModoAjuste;
+  /**
+   * Ajuste porcentual sobre el costo unitario segun el estrato, congelado ese mes.
+   * Negativo = subsidio, positivo = contribucion.
+   */
+  ajustePorEstratoPct: number;
+  /** Ajuste absoluto sobre el costo unitario en $/kWh, congelado ese mes. Solo aplica si `modoAjuste` es `'pesosPorKwh'`. */
+  ajustePorKwh?: number;
+  /** Tope mensual de consumo de subsistencia en kWh vigente ese mes. */
+  consumoSubsistenciaKwh: number;
+  /** Impuesto de alumbrado publico como porcentaje del costo de energia, vigente ese mes. */
+  alumbradoPublicoPct: number;
+  /** Valor fijo del servicio de aseo en pesos, vigente ese mes. */
+  valorAseo: number;
+  /** Total calculado por el motor de calculo en pesos, para este registro. */
+  totalCalculado: number;
+  /** Total realmente facturado en pesos, digitado por el usuario al recibir el recibo fisico. Opcional hasta que llegue. */
+  totalFacturado?: number;
+}
