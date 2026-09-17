@@ -11,6 +11,38 @@ import PanelResultados from '../components/PanelResultados.astro';
       <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">
         Digita lo que ves en el medidor y calculamos, al instante, cuánto llevas y cuánto vas a pagar.
       </p>
+
+      <details class="group mt-2 rounded-lg border border-slate-200 bg-white/60 dark:border-slate-800 dark:bg-slate-900/40">
+        <summary
+          class="marker:content-none flex min-h-11 cursor-pointer list-none items-center justify-between gap-2 rounded-lg px-3 text-sm font-semibold text-slate-700 [&::-webkit-details-marker]:hidden dark:text-slate-200"
+        >
+          <span>¿Cómo funciona?</span>
+          <svg class="icono-plegable h-4 w-4 shrink-0" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+            <path
+              d="M5 7.5 10 12.5 15 7.5"
+              stroke="currentColor"
+              stroke-width="1.6"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            ></path>
+          </svg>
+        </summary>
+        <div class="space-y-2 px-3 pb-3 pt-1 text-xs leading-snug text-slate-600 dark:text-slate-400">
+          <p>
+            Ten a mano tu recibo más reciente: el costo unitario ($/kWh), las fechas de inicio y cierre del ciclo,
+            los días facturados, el estrato (o el ajuste que aplique), el porcentaje de alumbrado público y el valor
+            del aseo. Del consumo, sirve tanto las dos lecturas del medidor como el total en kWh si ya lo tienes.
+          </p>
+          <p>
+            <strong class="font-semibold text-slate-700 dark:text-slate-300">Vas en</strong> es lo que ya causaste hasta
+            hoy;
+            <strong class="font-semibold text-slate-700 dark:text-slate-300">vas a llegar a</strong> es la proyección
+            de lo que vas a pagar si sigues consumiendo al mismo ritmo hasta que cierre el ciclo.
+          </p>
+          <p>Es una estimación para planear, no reemplaza la factura oficial de tu empresa de energía.</p>
+          <p>Tus datos se guardan solo en este celular; nunca se envían a ningún servidor.</p>
+        </div>
+      </details>
     </header>
 
     <FormularioConsumo />

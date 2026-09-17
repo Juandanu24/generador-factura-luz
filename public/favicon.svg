@@ -1,4 +1,17 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <rect width="32" height="32" rx="7" fill="#059669"/>
-  <path d="M17.8 4 8.5 18.2h6.2L13.4 28l9.6-14.6h-6.4L17.8 4z" fill="#fff"/>
+  <style>
+    /* Fallback (y navegadores sin soporte de @media en SVG): cuadro verde con
+       rayo blanco, legible sobre fondo claro u oscuro por si solo. */
+    .fondo { fill: #059669; }
+    .rayo { fill: #ffffff; }
+    @media (prefers-color-scheme: dark) {
+      /* En modo oscuro seguimos los mismos colores que usa la app
+         (bg-slate-900 / accent emerald-400) para que el icono combine con la
+         pestaña oscura del navegador. */
+      .fondo { fill: #0f172a; }
+      .rayo { fill: #34d399; }
+    }
+  </style>
+  <rect width="32" height="32" rx="7" class="fondo"/>
+  <path d="M17.8 4 8.5 18.2h6.2L13.4 28l9.6-14.6h-6.4L17.8 4z" class="rayo"/>
 </svg>

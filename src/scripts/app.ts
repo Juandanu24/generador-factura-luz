@@ -58,7 +58,7 @@ function recalcular(): void {
   }
 
   const resultado = proyectar(entrada);
-  mostrarResultado(resultado);
+  mostrarResultado(resultado, entrada.alumbradoPublicoPct);
 }
 
 const recalcularConDebounce = debounce(recalcular, DEBOUNCE_MS);
