@@ -14,7 +14,7 @@ import type { EntradaFactura, Estrato } from '@/lib/types';
  */
 export const AJUSTE_POR_ESTRATO: Record<string, number> = {
   '1': -60, // subsidio tipico estrato 1 (maximo subsidio)
-  '2': -50, // subsidio tipico estrato 2
+  '2': -37.2864, // medido en un recibo real de Afinia/Monteria: $376,00 de descuento sobre un CU de $1.008,41
   '3': -15, // subsidio tipico estrato 3
   '4': 0, // estrato 4: tarifa plena, sin subsidio ni contribucion
   '5': 20, // contribucion tipica estrato 5
@@ -48,8 +48,44 @@ function aFechaLocalISO(fecha: Date): string {
 }
 
 /**
- * Entrada de ejemplo lista para usar, con valores de arranque razonables
- * para un estrato 3 tipico en Colombia.
+ * Valores de arranque tomados de un recibo real de Afinia (Caribemar de la
+ * Costa) en Monteria, estrato 2 residencial, periodo 16/07/2026 - 17/08/2026.
+ *
+ * Se usan como referencia porque son datos verificados contra una factura
+ * emitida, no estimaciones. El motor de calculo reproduce esa factura al peso
+ * (ver `__tests__/recibo-real.test.ts`). Aun asi, el usuario deberia
+ * sobrescribirlos con los de SU recibo: el CU cambia todos los meses y el
+ * porcentaje de alumbrado publico lo fija cada municipio.
+ */
+export const RECIBO_REFERENCIA = {
+  /** Costo unitario de la energia en $/kWh (renglon "CU" del recibo). */
+  costoUnitarioKwh: 1008.41,
+  /**
+   * El recibo expresa el subsidio como un descuento absoluto de $376,00 por
+   * kWh sobre los primeros 173 kWh, no como un porcentaje. Equivale a
+   * -37,2864% del CU (376 / 1008,41). Al cambiar el CU el porcentaje deja de
+   * corresponder, asi que conviene recalcularlo desde el recibo del mes.
+   */
+  subsidioPorKwh: 376.0,
+  ajustePorEstratoPct: -37.2864,
+  /** Monteria esta por debajo de los 1000 m.s.n.m., de ahi el tope de 173. */
+  consumoSubsistenciaKwh: SUBSISTENCIA_ALTITUD_BAJA,
+  /**
+   * 13% exacto del costo de energia ($121.719,41 sobre $936.303,13). El 15%
+   * que se suele citar no aplica en este municipio.
+   */
+  alumbradoPublicoPct: 13,
+  /** Valor total del servicio de aseo facturado por Urbaser. */
+  valorAseo: 39490,
+  /** El ciclo facturado fue de 32 dias, no de 30. */
+  diasCiclo: 32,
+  /** Estrato del predio. */
+  estrato: 2 as Estrato,
+} as const;
+
+/**
+ * Entrada de arranque del formulario, precargada con los valores del recibo
+ * de referencia para no partir de un formulario en blanco.
  */
 export function entradaPorDefecto(hoy: Date = new Date()): EntradaFactura {
   const primerDiaDelMes = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
@@ -57,12 +93,12 @@ export function entradaPorDefecto(hoy: Date = new Date()): EntradaFactura {
   return {
     fechaInicioCiclo: aFechaLocalISO(primerDiaDelMes),
     fechaLectura: aFechaLocalISO(hoy),
-    diasCiclo: 30,
-    estrato: 3,
-    costoUnitarioKwh: 900,
-    ajustePorEstratoPct: -15,
-    consumoSubsistenciaKwh: 173,
-    alumbradoPublicoPct: 15,
-    valorAseo: 40000,
+    diasCiclo: RECIBO_REFERENCIA.diasCiclo,
+    estrato: RECIBO_REFERENCIA.estrato,
+    costoUnitarioKwh: RECIBO_REFERENCIA.costoUnitarioKwh,
+    ajustePorEstratoPct: RECIBO_REFERENCIA.ajustePorEstratoPct,
+    consumoSubsistenciaKwh: RECIBO_REFERENCIA.consumoSubsistenciaKwh,
+    alumbradoPublicoPct: RECIBO_REFERENCIA.alumbradoPublicoPct,
+    valorAseo: RECIBO_REFERENCIA.valorAseo,
   };
 }

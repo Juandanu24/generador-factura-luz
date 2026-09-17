@@ -89,12 +89,13 @@ se presta a error:
 
 - **Estrato 4**: tarifa plena, sin ajuste.
 
-Porcentajes sugeridos de arranque (aproximados, editables en la app):
+Porcentajes sugeridos de arranque (aproximados salvo el de estrato 2, que está
+medido sobre un recibo real; todos editables en la app):
 
 | Estrato | Ajuste sobre el CU |
 |---|---|
 | 1 | −60 % |
-| 2 | −50 % |
+| 2 | −37,29 % |
 | 3 | −15 % |
 | 4 | 0 % |
 | 5 | +20 % |
@@ -105,8 +106,8 @@ Porcentajes sugeridos de arranque (aproximados, editables en la app):
 
 ```
 costoEnergia     = energiaSubsidiada + energiaPlena
-alumbradoPublico = costoEnergia × alumbradoPublicoPct/100     (default 15 %)
-aseo             = valor fijo                                 (default $40.000)
+alumbradoPublico = costoEnergia × alumbradoPublicoPct/100     (default 13 %)
+aseo             = valor fijo                                 (default $39.490)
 total            = costoEnergia + alumbradoPublico + aseo
 ```
 
@@ -143,6 +144,34 @@ reportar ruido como si fuera un cambio real.
 | Aseo | Renglón del servicio de aseo |
 | Días del ciclo | Periodo facturado |
 
+## Recibo de referencia
+
+Los valores por defecto no son inventados: salen de una factura real de **Afinia
+(Caribemar de la Costa)** en **Montería, estrato 2 residencial**, periodo
+16/07/2026 – 17/08/2026. El motor reproduce esa factura al peso, y la prueba
+`src/lib/__tests__/recibo-real.test.ts` lo verifica en cada corrida.
+
+| Concepto | Recibo | Calculado |
+|---|---|---|
+| Consumo | 993 kWh | 993 kWh |
+| Tramo subsidiado | 1.008,41 × 173 = $174.454,93 | igual |
+| Tramo pleno | 1.008,41 × 820 = $826.896,20 | igual |
+| Subsidio | −$65.048,00 | igual |
+| Subtotal energía | $936.303,13 | igual |
+| Alumbrado público | $121.719,41 | igual |
+
+Dos cosas que ese recibo corrigió respecto de los supuestos iniciales:
+
+1. **El alumbrado público es 13 %, no 15 %.** $121.719,41 sobre $936.303,13 da
+   exactamente 13 %. El 15 % que suele citarse no aplica en este municipio.
+2. **El subsidio de estrato 2 es −37,29 %, no −50 %.** El recibo lo expresa como
+   un descuento absoluto de **$376,00 por kWh** sobre los primeros 173 kWh, que
+   contra un CU de $1.008,41 equivale a −37,2864 %.
+
+La diferencia entre el total calculado y el facturado es de unos $190, y
+corresponde a conceptos que la v1 no modela: interés por mora, aproximación a
+decenas y redondeos de facturaciones anteriores.
+
 ## Supuestos y limitaciones de la v1
 
 Esto es una **estimación**, no la factura oficial. En concreto:
@@ -151,9 +180,12 @@ Esto es una **estimación**, no la factura oficial. En concreto:
 - Los porcentajes por estrato son **valores aproximados de arranque**. Los reales
   cambian por resolución de la CREG, por comercializadora y por región; hay que
   sobrescribirlos con lo que diga el recibo propio.
-- El 15 % de alumbrado público y los $40.000 de aseo son defaults configurables, no
-  constantes nacionales. El alumbrado público lo fija cada municipio y el aseo depende
-  del operador y del aforo.
+- El 13 % de alumbrado público y los $39.490 de aseo vienen del recibo de
+  referencia, no son constantes nacionales. El alumbrado público lo fija cada
+  municipio y el aseo depende del operador y del aforo.
+- **El subsidio se modela como porcentaje del CU, pero los recibos lo expresan en
+  $/kWh.** Mientras el CU no cambie son equivalentes; cuando cambia, el porcentaje
+  deja de corresponder y hay que recalcularlo. Ver issue #17.
 - La proyección asume consumo lineal: no modela picos de fin de semana, ni clima, ni
   electrodomésticos que entran y salen.
 - No se modelan conceptos que sí aparecen en recibos reales: saldos anteriores,
