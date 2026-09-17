@@ -1,0 +1,65 @@
+---
+---
+
+<section id="historial-meses" aria-live="polite" class="mt-6 space-y-3">
+  <div class="flex flex-col gap-2">
+    <h2 class="text-base font-semibold text-slate-900 dark:text-slate-100">Historial de meses</h2>
+    <button
+      type="button"
+      id="btn-guardar-mes"
+      class="boton-primario w-full disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto sm:self-start"
+      disabled
+    >
+      Guardar este mes
+    </button>
+  </div>
+
+  <p
+    id="historial-aviso-storage"
+    class="hidden rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-xs leading-snug text-amber-800 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-300"
+    role="status"
+  >
+    Tu navegador no permite guardar datos ahora mismo (por ejemplo, en modo incógnito). Puedes seguir usando la
+    calculadora, pero el historial no se va a recordar la próxima vez que entres.
+  </p>
+
+  <p
+    id="historial-guardado-mensaje"
+    class="hidden text-xs font-medium text-emerald-600 dark:text-emerald-400"
+    role="status"
+  >
+    Mes guardado en el historial.
+  </p>
+
+  <p
+    id="historial-usado-mensaje"
+    class="hidden text-xs font-medium text-emerald-600 dark:text-emerald-400"
+    role="status"
+  >
+    Lectura anterior precargada. Ya puedes digitar la lectura de hoy.
+  </p>
+
+  <!-- Estado vacío -->
+  <div
+    id="historial-vacio"
+    class="seccion-tarjeta flex items-start gap-3 border-dashed text-sm text-slate-600 dark:text-slate-300"
+  >
+    <svg class="mt-0.5 h-5 w-5 shrink-0 text-slate-400" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+      <path
+        d="M10 3.5v6.25l3.5 2"
+        stroke="currentColor"
+        stroke-width="1.5"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      ></path>
+      <circle cx="10" cy="10" r="7.25" stroke="currentColor" stroke-width="1.5"></circle>
+    </svg>
+    <p>
+      Todavía no has guardado ningún mes. Guarda este mes para comparar tu estimación con lo que realmente te
+      cobraron, y para no tener que volver a copiar la lectura del medidor el próximo ciclo.
+    </p>
+  </div>
+
+  <!-- Lista de meses guardados, más reciente primero -->
+  <ul id="historial-lista" class="hidden space-y-3"></ul>
+</section>

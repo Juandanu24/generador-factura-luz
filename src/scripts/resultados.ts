@@ -13,6 +13,17 @@ function elemento<T extends HTMLElement>(id: string): T {
   return nodo as T;
 }
 
+/**
+ * Porcentaje "plano", sin el signo forzado de `formatearPct` (ese signo tiene
+ * sentido para un ajuste que puede ser subsidio o contribucion; el de
+ * alumbrado publico siempre es positivo y mostrar "+13,0 %" ahi confundiria).
+ */
+const FORMATO_PCT_PLANO = new Intl.NumberFormat('es-CO', { maximumFractionDigits: 1 });
+
+function formatearPctPlano(valor: number): string {
+  return `${FORMATO_PCT_PLANO.format(valor)} %`;
+}
+
 /** Prefijo con signo "+" para positivos; formatearCOP/formatearKwh ya ponen el "-". */
 function conSigno(valor: number, formateado: string): string {
   return valor > 0 ? `+${formateado}` : formateado;
@@ -23,11 +34,31 @@ export function mostrarEstadoVacio(mensaje: string): void {
   elemento('estado-vacio-mensaje').textContent = mensaje;
   elemento('estado-vacio').classList.remove('hidden');
   elemento('resultado-contenido').classList.add('hidden');
+  limpiarEstimadoAlumbrado();
 }
 
-function pintarDesglose(prefijo: string, desglose: DesgloseFactura): void {
+/**
+ * Estimacion en vivo, junto al campo de porcentaje, de cuanto representa el
+ * alumbrado publico en pesos con el consumo proyectado (issue #21). Vacio
+ * mientras no haya un resultado valido, para no mostrar "$0" ni "NaN".
+ */
+export function limpiarEstimadoAlumbrado(): void {
+  const nodo = document.getElementById('estimado-alumbrado');
+  if (nodo) nodo.textContent = '';
+}
+
+function pintarEstimadoAlumbrado(alumbradoPublicoPct: number, valorProyectado: number): void {
+  const nodo = document.getElementById('estimado-alumbrado');
+  if (!nodo) return;
+  nodo.textContent =
+    `${formatearPctPlano(alumbradoPublicoPct)} ≈ ${formatearCOP(valorProyectado)} con tu consumo proyectado.`;
+}
+
+function pintarDesglose(prefijo: string, desglose: DesgloseFactura, alumbradoPublicoPct: number): void {
   elemento(`${prefijo}-consumo`).textContent = formatearKwh(desglose.consumoKwh);
   elemento(`${prefijo}-energia`).textContent = formatearCOP(desglose.costoEnergia);
+  elemento(`${prefijo}-alumbrado-etiqueta`).textContent =
+    `Alumbrado público (${formatearPctPlano(alumbradoPublicoPct)})`;
   elemento(`${prefijo}-alumbrado`).textContent = formatearCOP(desglose.alumbradoPublico);
   elemento(`${prefijo}-aseo`).textContent = formatearCOP(desglose.aseo);
   elemento(`${prefijo}-total`).textContent = formatearCOP(desglose.total);
@@ -91,8 +122,15 @@ function pintarComparativa(comparativa: Comparativa | undefined): void {
   elemento('comparativa-delta-pct').textContent = formatearPct(comparativa.deltaValorPct);
 }
 
-/** Pinta el resultado completo y muestra el contenido (oculta el estado vacio). */
-export function mostrarResultado(resultado: ResultadoCalculo): void {
+/**
+ * Pinta el resultado completo y muestra el contenido (oculta el estado vacio).
+ *
+ * `alumbradoPublicoPct` es el mismo valor que uso el motor de calculo para
+ * `resultado` (viene de `EntradaFactura.alumbradoPublicoPct`, nunca de un
+ * texto fijo), para mostrarlo junto al valor en pesos en el desglose y en la
+ * estimacion en vivo del formulario (issue #21).
+ */
+export function mostrarResultado(resultado: ResultadoCalculo, alumbradoPublicoPct: number): void {
   elemento('estado-vacio').classList.add('hidden');
   elemento('resultado-contenido').classList.remove('hidden');
 
@@ -110,8 +148,9 @@ export function mostrarResultado(resultado: ResultadoCalculo): void {
   const promedioDiarioValor = resultado.diasTranscurridos > 0 ? resultado.aLaFecha.total / resultado.diasTranscurridos : 0;
   elemento('promedio-diario-valor').textContent = formatearCOP(promedioDiarioValor);
 
-  pintarDesglose('proyectado', resultado.proyectado);
-  pintarDesglose('a-la-fecha', resultado.aLaFecha);
+  pintarDesglose('proyectado', resultado.proyectado, alumbradoPublicoPct);
+  pintarDesglose('a-la-fecha', resultado.aLaFecha, alumbradoPublicoPct);
+  pintarEstimadoAlumbrado(alumbradoPublicoPct, resultado.proyectado.alumbradoPublico);
 
   pintarComparativa(resultado.comparativa);
 }

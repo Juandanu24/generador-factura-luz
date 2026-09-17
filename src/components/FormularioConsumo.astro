@@ -27,14 +27,19 @@ import { OPCIONES_ESTRATO } from '@/data/estratos';
           class="peer sr-only"
           checked
         />
-        <label for="modo-lecturas" class="segmento-etiqueta peer-checked:font-semibold">Lecturas del medidor</label>
+        <label for="modo-lecturas" class="segmento-etiqueta peer-checked:font-semibold">Tengo las dos lecturas</label>
         <input type="radio" name="modoConsumo" id="modo-directo" value="directo" class="peer sr-only" />
-        <label for="modo-directo" class="segmento-etiqueta peer-checked:font-semibold">Digitar consumo</label>
+        <label for="modo-directo" class="segmento-etiqueta peer-checked:font-semibold">Ya sé cuántos kWh llevo</label>
       </div>
+      <p class="ayuda-campo">
+        "Tengo las dos lecturas" si vas a copiar los números que muestra el medidor (anterior y actual). "Ya sé
+        cuántos kWh llevo" si el consumo del periodo ya te lo dio el recibo o una app, y solo quieres digitar ese
+        número.
+      </p>
     </div>
 
-    <div id="bloque-lecturas" class="grid grid-cols-2 gap-3">
-      <div class="grupo-campo">
+    <div id="bloque-lecturas" class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+      <div class="grupo-campo min-w-0">
         <label for="lecturaAnterior" class="etiqueta-campo">Lectura anterior (kWh)</label>
         <input
           type="number"
@@ -43,13 +48,13 @@ import { OPCIONES_ESTRATO } from '@/data/estratos';
           min="0"
           id="lecturaAnterior"
           data-campo="lecturaAnterior"
-          class="campo-entrada"
+          class="campo-entrada w-full min-w-0"
           placeholder="0"
         />
         <p class="ayuda-campo">La del recibo pasado, o la que anotaste la última vez.</p>
         <p id="error-lecturaAnterior" data-error-for="lecturaAnterior" class="mensaje-error hidden" role="alert"></p>
       </div>
-      <div class="grupo-campo">
+      <div class="grupo-campo min-w-0">
         <label for="lecturaActual" class="etiqueta-campo">Lectura de hoy (kWh)</label>
         <input
           type="number"
@@ -58,7 +63,7 @@ import { OPCIONES_ESTRATO } from '@/data/estratos';
           min="0"
           id="lecturaActual"
           data-campo="lecturaActual"
-          class="campo-entrada"
+          class="campo-entrada w-full min-w-0"
           placeholder="0"
         />
         <p class="ayuda-campo">La que ves ahora mismo en la pantalla del medidor.</p>
@@ -82,16 +87,21 @@ import { OPCIONES_ESTRATO } from '@/data/estratos';
       <p id="error-consumoDirecto" data-error-for="consumoDirecto" class="mensaje-error hidden" role="alert"></p>
     </div>
 
-    <div class="grid grid-cols-2 gap-3">
-      <div class="grupo-campo">
+    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+      <div class="grupo-campo min-w-0">
         <label for="fechaInicioCiclo" class="etiqueta-campo">Inicio del ciclo</label>
-        <input type="date" id="fechaInicioCiclo" data-campo="fechaInicioCiclo" class="campo-entrada" />
+        <input
+          type="date"
+          id="fechaInicioCiclo"
+          data-campo="fechaInicioCiclo"
+          class="campo-entrada w-full min-w-0"
+        />
         <p class="ayuda-campo">Fecha de corte del recibo anterior.</p>
         <p id="error-fechaInicioCiclo" data-error-for="fechaInicioCiclo" class="mensaje-error hidden" role="alert"></p>
       </div>
-      <div class="grupo-campo">
+      <div class="grupo-campo min-w-0">
         <label for="fechaLectura" class="etiqueta-campo">Fecha de hoy</label>
-        <input type="date" id="fechaLectura" data-campo="fechaLectura" class="campo-entrada" />
+        <input type="date" id="fechaLectura" data-campo="fechaLectura" class="campo-entrada w-full min-w-0" />
         <p class="ayuda-campo">El día en que estás mirando el medidor.</p>
         <p id="error-fechaLectura" data-error-for="fechaLectura" class="mensaje-error hidden" role="alert"></p>
       </div>
@@ -265,6 +275,7 @@ import { OPCIONES_ESTRATO } from '@/data/estratos';
           class="campo-entrada"
         />
         <p class="ayuda-campo">Aparece como impuesto o contribución de alumbrado público en el recibo. Lo fija cada municipio: en Montería es 13%.</p>
+        <p id="estimado-alumbrado" class="ayuda-campo font-medium text-slate-700 dark:text-slate-300" aria-live="polite"></p>
         <p
           id="error-alumbradoPublicoPct"
           data-error-for="alumbradoPublicoPct"

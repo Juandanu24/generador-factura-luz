@@ -21,6 +21,7 @@ import {
 } from '@/scripts/formulario';
 import { mostrarEstadoVacio, mostrarResultado } from '@/scripts/resultados';
 import { cargarEntrada, guardarEntrada, limpiarEntrada } from '@/scripts/persistencia';
+import { actualizarEstadoGuardado, inicializarHistorial } from '@/scripts/historial';
 
 const DEBOUNCE_MS = 150;
 
@@ -54,11 +55,13 @@ function recalcular(): void {
   if (errores.length > 0) {
     // Usamos el primer error tal cual para que el mensaje diga exactamente que falta.
     mostrarEstadoVacio(errores[0].mensaje);
+    actualizarEstadoGuardado(entrada, undefined);
     return;
   }
 
   const resultado = proyectar(entrada);
-  mostrarResultado(resultado);
+  mostrarResultado(resultado, entrada.alumbradoPublicoPct);
+  actualizarEstadoGuardado(entrada, resultado);
 }
 
 const recalcularConDebounce = debounce(recalcular, DEBOUNCE_MS);
@@ -187,6 +190,13 @@ function inicializar(): void {
   // no lo deje en blanco.
   sincronizarCampoAjusteInactivo();
   actualizarAtajosSubsistencia();
+
+  // Se inicializa despues de que todos los listeners del formulario ya estan
+  // enganchados: si no hay lecturas digitadas y hay historial, precarga la
+  // lectura anterior del registro mas reciente (issue #23), y eso dispara
+  // los mismos eventos 'input' que escucha el formulario.
+  inicializarHistorial();
+
   recalcular();
 }
 
