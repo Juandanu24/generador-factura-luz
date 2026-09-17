@@ -62,7 +62,13 @@
   .fila-desglose {
     @apply flex items-baseline justify-between gap-3 py-1.5 text-sm text-slate-700 dark:text-slate-300;
   }
+  .fila-desglose > span:last-child {
+    @apply min-w-0 shrink break-words text-right;
+  }
   .fila-desglose-total {
     @apply flex items-baseline justify-between gap-3 border-t border-slate-200 pt-2 text-base font-bold text-slate-900 dark:border-slate-700 dark:text-slate-100;
+  }
+  .fila-desglose-total > span:last-child {
+    @apply min-w-0 shrink break-words text-right;
   }
 }

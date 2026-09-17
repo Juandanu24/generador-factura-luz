@@ -1,0 +1,293 @@
+---
+import { OPCIONES_ESTRATO } from '@/data/estratos';
+---
+
+<form id="formulario-consumo" novalidate class="space-y-4">
+  <!-- Errores generales (p. ej. "falta digitar el consumo") -->
+  <div
+    id="errores-generales"
+    data-error-for="general"
+    class="hidden rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-sm font-medium text-red-700 dark:border-red-800 dark:bg-red-950/40 dark:text-red-300"
+    role="alert"
+  >
+  </div>
+
+  <!-- 1. Consumo: siempre visible, es lo que se toca a diario -->
+  <section class="seccion-tarjeta">
+    <h2 class="mb-3 text-base font-semibold text-slate-900 dark:text-slate-100">Consumo</h2>
+
+    <div class="grupo-campo">
+      <span class="etiqueta-campo" id="etiqueta-modo-consumo">¿Cómo quieres registrar el consumo?</span>
+      <div class="segmento-grupo" role="radiogroup" aria-labelledby="etiqueta-modo-consumo">
+        <input
+          type="radio"
+          name="modoConsumo"
+          id="modo-lecturas"
+          value="lecturas"
+          class="peer sr-only"
+          checked
+        />
+        <label for="modo-lecturas" class="segmento-etiqueta peer-checked:font-semibold">Lecturas del medidor</label>
+        <input type="radio" name="modoConsumo" id="modo-directo" value="directo" class="peer sr-only" />
+        <label for="modo-directo" class="segmento-etiqueta peer-checked:font-semibold">Digitar consumo</label>
+      </div>
+    </div>
+
+    <div id="bloque-lecturas" class="grid grid-cols-2 gap-3">
+      <div class="grupo-campo">
+        <label for="lecturaAnterior" class="etiqueta-campo">Lectura anterior (kWh)</label>
+        <input
+          type="number"
+          inputmode="decimal"
+          step="any"
+          min="0"
+          id="lecturaAnterior"
+          data-campo="lecturaAnterior"
+          class="campo-entrada"
+          placeholder="0"
+        />
+        <p class="ayuda-campo">La del recibo pasado, o la que anotaste la última vez.</p>
+        <p id="error-lecturaAnterior" data-error-for="lecturaAnterior" class="mensaje-error hidden" role="alert"></p>
+      </div>
+      <div class="grupo-campo">
+        <label for="lecturaActual" class="etiqueta-campo">Lectura de hoy (kWh)</label>
+        <input
+          type="number"
+          inputmode="decimal"
+          step="any"
+          min="0"
+          id="lecturaActual"
+          data-campo="lecturaActual"
+          class="campo-entrada"
+          placeholder="0"
+        />
+        <p class="ayuda-campo">La que ves ahora mismo en la pantalla del medidor.</p>
+        <p id="error-lecturaActual" data-error-for="lecturaActual" class="mensaje-error hidden" role="alert"></p>
+      </div>
+    </div>
+
+    <div id="bloque-directo" class="hidden grupo-campo">
+      <label for="consumoDirecto" class="etiqueta-campo">Consumo del periodo (kWh)</label>
+      <input
+        type="number"
+        inputmode="decimal"
+        step="any"
+        min="0"
+        id="consumoDirecto"
+        data-campo="consumoDirecto"
+        class="campo-entrada"
+        placeholder="0"
+      />
+      <p class="ayuda-campo">Si ya sabes cuánto llevas consumido, digítalo directo aquí.</p>
+      <p id="error-consumoDirecto" data-error-for="consumoDirecto" class="mensaje-error hidden" role="alert"></p>
+    </div>
+
+    <div class="grid grid-cols-2 gap-3">
+      <div class="grupo-campo">
+        <label for="fechaInicioCiclo" class="etiqueta-campo">Inicio del ciclo</label>
+        <input type="date" id="fechaInicioCiclo" data-campo="fechaInicioCiclo" class="campo-entrada" />
+        <p class="ayuda-campo">Fecha de corte del recibo anterior.</p>
+        <p id="error-fechaInicioCiclo" data-error-for="fechaInicioCiclo" class="mensaje-error hidden" role="alert"></p>
+      </div>
+      <div class="grupo-campo">
+        <label for="fechaLectura" class="etiqueta-campo">Fecha de hoy</label>
+        <input type="date" id="fechaLectura" data-campo="fechaLectura" class="campo-entrada" />
+        <p class="ayuda-campo">El día en que estás mirando el medidor.</p>
+        <p id="error-fechaLectura" data-error-for="fechaLectura" class="mensaje-error hidden" role="alert"></p>
+      </div>
+    </div>
+
+    <div class="grupo-campo mb-0">
+      <label for="diasCiclo" class="etiqueta-campo">Duración del ciclo (días)</label>
+      <input
+        type="number"
+        inputmode="numeric"
+        step="1"
+        min="1"
+        max="62"
+        id="diasCiclo"
+        data-campo="diasCiclo"
+        class="campo-entrada max-w-[8rem]"
+      />
+      <p class="ayuda-campo">Normalmente 30. Revisa el recibo si tu ciclo es distinto.</p>
+      <p id="error-diasCiclo" data-error-for="diasCiclo" class="mensaje-error hidden" role="alert"></p>
+    </div>
+  </section>
+
+  <!-- 2. Tarifa: colapsable, cerrada por defecto -->
+  <details class="seccion-tarjeta group">
+    <summary class="resumen-plegable">
+      <span>Tarifa</span>
+      <svg class="icono-plegable h-5 w-5" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+        <path d="M5 7.5 10 12.5 15 7.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path>
+      </svg>
+    </summary>
+
+    <div class="mt-4">
+      <div class="grupo-campo">
+        <label for="estrato" class="etiqueta-campo">Estrato</label>
+        <select id="estrato" data-campo="estrato" class="campo-entrada">
+          {OPCIONES_ESTRATO.map((opcion) => <option value={opcion.valor}>{opcion.etiqueta}</option>)}
+        </select>
+        <p class="ayuda-campo">Aparece en la parte superior del recibo. Precarga un ajuste típico que puedes corregir abajo.</p>
+        <p id="error-estrato" data-error-for="estrato" class="mensaje-error hidden" role="alert"></p>
+      </div>
+
+      <div class="grupo-campo">
+        <label for="costoUnitarioKwh" class="etiqueta-campo">Costo unitario ($/kWh)</label>
+        <input
+          type="number"
+          inputmode="decimal"
+          step="any"
+          min="0"
+          id="costoUnitarioKwh"
+          data-campo="costoUnitarioKwh"
+          class="campo-entrada"
+        />
+        <p class="ayuda-campo">Busca "costo unitario" o "$/kWh" en el detalle de energía del recibo.</p>
+        <p id="error-costoUnitarioKwh" data-error-for="costoUnitarioKwh" class="mensaje-error hidden" role="alert"></p>
+      </div>
+
+      <div class="grupo-campo">
+        <label for="ajustePorEstratoPct" class="etiqueta-campo">Ajuste por estrato (%)</label>
+        <input
+          type="number"
+          inputmode="decimal"
+          step="any"
+          id="ajustePorEstratoPct"
+          data-campo="ajustePorEstratoPct"
+          class="campo-entrada"
+        />
+        <p class="ayuda-campo">Negativo = subsidio, positivo = contribución. Precargado según el estrato; cámbialo si tu recibo dice otra cosa.</p>
+        <p id="error-ajustePorEstratoPct" data-error-for="ajustePorEstratoPct" class="mensaje-error hidden" role="alert"></p>
+      </div>
+
+      <div class="grupo-campo mb-0">
+        <label for="consumoSubsistenciaKwh" class="etiqueta-campo">Tope de consumo de subsistencia (kWh)</label>
+        <div class="flex items-center gap-2">
+          <input
+            type="number"
+            inputmode="decimal"
+            step="any"
+            min="0"
+            id="consumoSubsistenciaKwh"
+            data-campo="consumoSubsistenciaKwh"
+            class="campo-entrada max-w-[7rem]"
+          />
+          <button type="button" id="btn-subsistencia-alta" class="boton-atajo" aria-pressed="false">130</button>
+          <button type="button" id="btn-subsistencia-baja" class="boton-atajo" aria-pressed="false">173</button>
+        </div>
+        <p class="ayuda-campo">130 kWh si tu municipio está a 1000 m.s.n.m. o más; 173 kWh si está por debajo.</p>
+        <p
+          id="error-consumoSubsistenciaKwh"
+          data-error-for="consumoSubsistenciaKwh"
+          class="mensaje-error hidden"
+          role="alert"
+        >
+        </p>
+      </div>
+    </div>
+  </details>
+
+  <!-- 3. Otros cobros: colapsable, cerrada por defecto -->
+  <details class="seccion-tarjeta group">
+    <summary class="resumen-plegable">
+      <span>Otros cobros</span>
+      <svg class="icono-plegable h-5 w-5" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+        <path d="M5 7.5 10 12.5 15 7.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path>
+      </svg>
+    </summary>
+
+    <div class="mt-4">
+      <div class="grupo-campo">
+        <label for="alumbradoPublicoPct" class="etiqueta-campo">Alumbrado público (%)</label>
+        <input
+          type="number"
+          inputmode="decimal"
+          step="any"
+          min="0"
+          id="alumbradoPublicoPct"
+          data-campo="alumbradoPublicoPct"
+          class="campo-entrada"
+        />
+        <p class="ayuda-campo">Aparece como impuesto o contribución de alumbrado público en el recibo. Suele ser 15%.</p>
+        <p
+          id="error-alumbradoPublicoPct"
+          data-error-for="alumbradoPublicoPct"
+          class="mensaje-error hidden"
+          role="alert"
+        >
+        </p>
+      </div>
+
+      <div class="grupo-campo mb-0">
+        <label for="valorAseo" class="etiqueta-campo">Aseo ($)</label>
+        <input
+          type="number"
+          inputmode="decimal"
+          step="any"
+          min="0"
+          id="valorAseo"
+          data-campo="valorAseo"
+          class="campo-entrada"
+        />
+        <p class="ayuda-campo">Valor fijo del servicio de aseo que aparece en el recibo.</p>
+        <p id="error-valorAseo" data-error-for="valorAseo" class="mensaje-error hidden" role="alert"></p>
+      </div>
+    </div>
+  </details>
+
+  <!-- 4. Mes anterior: colapsable, opcional -->
+  <details class="seccion-tarjeta group">
+    <summary class="resumen-plegable">
+      <span>Mes anterior <span class="font-normal text-slate-500 dark:text-slate-400">(opcional)</span></span>
+      <svg class="icono-plegable h-5 w-5" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+        <path d="M5 7.5 10 12.5 15 7.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path>
+      </svg>
+    </summary>
+
+    <div class="mt-4">
+      <p class="mb-3 text-xs text-slate-500 dark:text-slate-400">
+        Si los digitas, comparamos lo que vas a pagar este mes contra el anterior.
+      </p>
+      <div class="grupo-campo">
+        <label for="consumoMesAnteriorKwh" class="etiqueta-campo">Consumo del mes anterior (kWh)</label>
+        <input
+          type="number"
+          inputmode="decimal"
+          step="any"
+          min="0"
+          id="consumoMesAnteriorKwh"
+          data-campo="consumoMesAnteriorKwh"
+          class="campo-entrada"
+          placeholder="Opcional"
+        />
+        <p
+          id="error-consumoMesAnteriorKwh"
+          data-error-for="consumoMesAnteriorKwh"
+          class="mensaje-error hidden"
+          role="alert"
+        >
+        </p>
+      </div>
+      <div class="grupo-campo mb-0">
+        <label for="valorMesAnterior" class="etiqueta-campo">Total pagado el mes anterior ($)</label>
+        <input
+          type="number"
+          inputmode="decimal"
+          step="any"
+          min="0"
+          id="valorMesAnterior"
+          data-campo="valorMesAnterior"
+          class="campo-entrada"
+          placeholder="Opcional"
+        />
+        <p id="error-valorMesAnterior" data-error-for="valorMesAnterior" class="mensaje-error hidden" role="alert"></p>
+      </div>
+    </div>
+  </details>
+
+  <div class="flex justify-end pb-2">
+    <button type="button" id="btn-limpiar" class="boton-secundario">Limpiar y empezar de nuevo</button>
+  </div>
+</form>

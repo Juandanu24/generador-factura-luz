@@ -1,0 +1,81 @@
+---
+import DesgloseCobros from './DesgloseCobros.astro';
+import ComparativaMes from './ComparativaMes.astro';
+---
+
+<section id="panel-resultados" aria-live="polite" class="mt-6 space-y-4">
+  <!-- Estado vacío: mientras falten datos obligatorios -->
+  <div
+    id="estado-vacio"
+    class="seccion-tarjeta flex items-start gap-3 border-dashed text-sm text-slate-600 dark:text-slate-300"
+  >
+    <svg class="mt-0.5 h-5 w-5 shrink-0 text-slate-400" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+      <circle cx="10" cy="10" r="7.25" stroke="currentColor" stroke-width="1.5"></circle>
+      <path d="M10 6.5v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path>
+      <circle cx="10" cy="13.25" r="0.9" fill="currentColor"></circle>
+    </svg>
+    <p id="estado-vacio-mensaje">Completa el consumo y la tarifa para ver cuánto vas a pagar.</p>
+  </div>
+
+  <!-- Resultado: oculto hasta que la entrada sea válida -->
+  <div id="resultado-contenido" class="hidden space-y-4">
+    <!-- Dos cifras grandes lado a lado -->
+    <div class="grid grid-cols-2 gap-3">
+      <div class="seccion-tarjeta min-w-0 bg-slate-50 text-center dark:bg-slate-900">
+        <p class="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">Vas en</p>
+        <p
+          id="total-a-la-fecha"
+          class="mt-1 break-words text-xl font-extrabold text-slate-900 sm:text-2xl dark:text-slate-100"
+        >
+          —
+        </p>
+      </div>
+      <div class="seccion-tarjeta min-w-0 border-emerald-200 bg-emerald-50 text-center dark:border-emerald-900 dark:bg-emerald-500/10">
+        <p class="text-xs font-medium uppercase tracking-wide text-emerald-700 dark:text-emerald-300">
+          Vas a llegar a
+        </p>
+        <p
+          id="total-proyectado"
+          class="mt-1 break-words text-xl font-extrabold text-emerald-700 sm:text-2xl dark:text-emerald-300"
+        >
+          —
+        </p>
+      </div>
+    </div>
+
+    <!-- Contexto del ciclo -->
+    <div class="seccion-tarjeta">
+      <div class="mb-2 flex items-center justify-between text-sm text-slate-600 dark:text-slate-300">
+        <span><span id="dias-transcurridos">0</span> días transcurridos</span>
+        <span><span id="dias-restantes">0</span> días restantes</span>
+      </div>
+      <div class="h-2 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800">
+        <div
+          id="barra-progreso"
+          class="h-full rounded-full bg-emerald-500 transition-[width]"
+          style="width: 0%"
+        >
+        </div>
+      </div>
+      <div class="mt-3 grid grid-cols-2 gap-3 text-sm">
+        <p class="min-w-0 break-words text-slate-600 dark:text-slate-300">
+          Promedio diario:
+          <span id="promedio-diario-kwh" class="font-semibold text-slate-900 dark:text-slate-100">—</span>
+        </p>
+        <p class="min-w-0 break-words text-slate-600 dark:text-slate-300">
+          <span id="promedio-diario-valor" class="font-semibold text-slate-900 dark:text-slate-100">—</span>/día
+        </p>
+      </div>
+    </div>
+
+    <!-- Desglose detallado: proyectado siempre visible, a la fecha colapsable -->
+    <div class="seccion-tarjeta">
+      <DesgloseCobros prefijo="proyectado" titulo="Desglose al cierre del ciclo" />
+      <div class="mt-4 border-t border-slate-100 pt-3 dark:border-slate-800">
+        <DesgloseCobros prefijo="a-la-fecha" titulo="Ver desglose de lo consumido hasta hoy" colapsable={true} />
+      </div>
+    </div>
+
+    <ComparativaMes />
+  </div>
+</section>
