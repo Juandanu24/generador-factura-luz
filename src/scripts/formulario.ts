@@ -3,7 +3,8 @@
  * `EntradaFactura`, y pinta los errores de validacion junto a cada campo.
  */
 
-import type { EntradaFactura, ErrorValidacion, Estrato } from '@/lib/types';
+import type { EntradaFactura, ErrorValidacion, Estrato, ModoAjuste } from '@/lib/types';
+import { pctAPesosPorKwh, pesosPorKwhAPct } from '@/data/estratos';
 
 type ModoConsumo = 'lecturas' | 'directo';
 
@@ -35,6 +36,11 @@ function modoConsumoActual(): ModoConsumo {
   return elemento<HTMLInputElement>('modo-directo').checked ? 'directo' : 'lecturas';
 }
 
+/** Modo en que el usuario esta expresando el ajuste por estrato ahora mismo, segun el toggle. */
+export function modoAjusteActual(): ModoAjuste {
+  return elemento<HTMLInputElement>('modo-ajuste-porcentaje').checked ? 'porcentaje' : 'pesosPorKwh';
+}
+
 function estratoDesdeValor(valor: string): Estrato {
   return valor === 'comercial' ? 'comercial' : (Number(valor) as Estrato);
 }
@@ -44,6 +50,47 @@ export function actualizarVisibilidadModoConsumo(): void {
   const modo = modoConsumoActual();
   elemento('bloque-lecturas').classList.toggle('hidden', modo !== 'lecturas');
   elemento('bloque-directo').classList.toggle('hidden', modo !== 'directo');
+}
+
+/** Muestra u oculta el bloque $/kWh / porcentaje del ajuste por estrato segun el modo elegido. */
+export function actualizarVisibilidadModoAjuste(): void {
+  const modo = modoAjusteActual();
+  elemento('bloque-ajuste-pesos').classList.toggle('hidden', modo !== 'pesosPorKwh');
+  elemento('bloque-ajuste-porcentaje').classList.toggle('hidden', modo !== 'porcentaje');
+}
+
+/**
+ * Mantiene sincronizados los campos `ajustePorKwh` y `ajustePorEstratoPct`
+ * entre si, usando el que esta a la vista (segun el modo activo) como fuente
+ * de verdad y convirtiendo el otro con el costo unitario en pantalla.
+ *
+ * Asi el usuario no pierde lo digitado al alternar de modo, y el campo
+ * escondido nunca queda en NaN ni desactualizado (lo que dispararia un error
+ * de `validarEntrada` para un campo que ni siquiera puede ver).
+ *
+ * No hace nada si el costo unitario en pantalla no es un numero utilizable:
+ * en ese caso se deja el campo escondido tal como estaba.
+ */
+export function sincronizarCampoAjusteInactivo(): void {
+  const cu = Number(elemento<HTMLInputElement>('costoUnitarioKwh').value);
+  if (!Number.isFinite(cu) || cu <= 0) return;
+
+  const modo = modoAjusteActual();
+  const campoPesos = elemento<HTMLInputElement>('ajustePorKwh');
+  const campoPct = elemento<HTMLInputElement>('ajustePorEstratoPct');
+
+  if (modo === 'pesosPorKwh') {
+    const pesos = campoPesos.value.trim() === '' ? NaN : Number(campoPesos.value);
+    if (!Number.isFinite(pesos)) return;
+    // Se mantiene el campo oculto en sincronia para que alternar de modo no
+    // pierda lo digitado. No hace falta acotarlo: en modo `pesosPorKwh` el
+    // motor ignora este campo y `validarEntrada` ya no le exige rango.
+    campoPct.value = String(pesosPorKwhAPct(pesos, cu));
+  } else {
+    const pct = campoPct.value.trim() === '' ? NaN : Number(campoPct.value);
+    if (!Number.isFinite(pct)) return;
+    campoPesos.value = String(pctAPesosPorKwh(pct, cu));
+  }
 }
 
 /** Lee todo el formulario y arma una `EntradaFactura`. Los campos vacios quedan en NaN/undefined. */
@@ -60,6 +107,8 @@ export function leerEntradaDelFormulario(): EntradaFactura {
     estrato: estratoDesdeValor(elemento<HTMLSelectElement>('estrato').value),
     costoUnitarioKwh: numeroRequerido('costoUnitarioKwh'),
     ajustePorEstratoPct: numeroRequerido('ajustePorEstratoPct'),
+    modoAjuste: modoAjusteActual(),
+    ajustePorKwh: numeroOpcional('ajustePorKwh'),
     consumoSubsistenciaKwh: numeroRequerido('consumoSubsistenciaKwh'),
     alumbradoPublicoPct: numeroRequerido('alumbradoPublicoPct'),
     valorAseo: numeroRequerido('valorAseo'),
@@ -88,6 +137,10 @@ export function escribirEntradaEnFormulario(entrada: EntradaFactura): void {
   elemento<HTMLInputElement>('ajustePorEstratoPct').value = Number.isFinite(entrada.ajustePorEstratoPct)
     ? String(entrada.ajustePorEstratoPct)
     : '';
+  const modoAjuste: ModoAjuste = entrada.modoAjuste ?? 'porcentaje';
+  elemento<HTMLInputElement>(modoAjuste === 'pesosPorKwh' ? 'modo-ajuste-pesos' : 'modo-ajuste-porcentaje').checked =
+    true;
+  elemento<HTMLInputElement>('ajustePorKwh').value = entrada.ajustePorKwh?.toString() ?? '';
   elemento<HTMLInputElement>('consumoSubsistenciaKwh').value = Number.isFinite(entrada.consumoSubsistenciaKwh)
     ? String(entrada.consumoSubsistenciaKwh)
     : '';
@@ -99,6 +152,7 @@ export function escribirEntradaEnFormulario(entrada: EntradaFactura): void {
   elemento<HTMLInputElement>('valorMesAnterior').value = entrada.valorMesAnterior?.toString() ?? '';
 
   actualizarVisibilidadModoConsumo();
+  actualizarVisibilidadModoAjuste();
   actualizarAtajosSubsistencia();
 }
 
@@ -121,11 +175,18 @@ export function erroresDeCamposVacios(entrada: EntradaFactura): ErrorValidacion[
   const numericosRequeridos: Array<{ campo: keyof EntradaFactura; mensaje: string }> = [
     { campo: 'costoUnitarioKwh', mensaje: 'Ingresa el costo unitario del kWh.' },
     { campo: 'diasCiclo', mensaje: 'Ingresa la duracion del ciclo en dias.' },
-    { campo: 'ajustePorEstratoPct', mensaje: 'Ingresa el ajuste por estrato.' },
     { campo: 'consumoSubsistenciaKwh', mensaje: 'Ingresa el tope de consumo de subsistencia.' },
     { campo: 'alumbradoPublicoPct', mensaje: 'Ingresa el porcentaje de alumbrado publico.' },
     { campo: 'valorAseo', mensaje: 'Ingresa el valor del aseo.' },
   ];
+
+  // El campo de porcentaje solo es responsabilidad directa del usuario cuando
+  // ese es el modo activo; en modo $/kWh queda oculto y sincronizado, y
+  // `validarEntrada` ya cubre el campo `ajustePorKwh` vacio con su propio
+  // mensaje.
+  if (entrada.modoAjuste !== 'pesosPorKwh') {
+    numericosRequeridos.push({ campo: 'ajustePorEstratoPct', mensaje: 'Ingresa el ajuste por estrato.' });
+  }
 
   for (const { campo, mensaje } of numericosRequeridos) {
     const valor = entrada[campo];

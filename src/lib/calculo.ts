@@ -108,10 +108,14 @@ export function validarEntrada(entrada: EntradaFactura): ErrorValidacion[] {
     });
   }
 
+  // Solo se exige el porcentaje cuando es el modo activo: en modo
+  // `pesosPorKwh` el campo queda inerte para el calculo, y validarlo de todas
+  // formas bloquearia al usuario por un campo que ni siquiera esta viendo.
   if (
-    !Number.isFinite(entrada.ajustePorEstratoPct) ||
-    entrada.ajustePorEstratoPct < -100 ||
-    entrada.ajustePorEstratoPct > 100
+    entrada.modoAjuste !== 'pesosPorKwh' &&
+    (!Number.isFinite(entrada.ajustePorEstratoPct) ||
+      entrada.ajustePorEstratoPct < -100 ||
+      entrada.ajustePorEstratoPct > 100)
   ) {
     errores.push({
       campo: 'ajustePorEstratoPct',

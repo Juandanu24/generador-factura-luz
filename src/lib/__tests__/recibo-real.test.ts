@@ -128,3 +128,23 @@ describe('el mismo recibo digitado en $/kWh (issue #17)', () => {
     expect(errores.some((e) => e.campo === 'ajustePorKwh')).toBe(true);
   });
 });
+
+describe('el porcentaje no estorba cuando el modo es $/kWh', () => {
+  it('no exige rango al campo de porcentaje si esta inactivo', () => {
+    // Al convertir -376 $/kWh sobre un CU bajo, el equivalente porcentual se
+    // sale del rango -100..100. Ese campo es invisible e inerte en este modo,
+    // asi que no debe bloquear al usuario.
+    const errores = validarEntrada({
+      ...recibo,
+      modoAjuste: 'pesosPorKwh',
+      ajustePorKwh: -376,
+      ajustePorEstratoPct: -500,
+    });
+    expect(errores.some((e) => e.campo === 'ajustePorEstratoPct')).toBe(false);
+  });
+
+  it('si lo sigue exigiendo cuando el modo es porcentaje', () => {
+    const errores = validarEntrada({ ...recibo, ajustePorEstratoPct: -500 });
+    expect(errores.some((e) => e.campo === 'ajustePorEstratoPct')).toBe(true);
+  });
+});

@@ -149,6 +149,40 @@ import { OPCIONES_ESTRATO } from '@/data/estratos';
       </div>
 
       <div class="grupo-campo">
+        <span class="etiqueta-campo" id="etiqueta-modo-ajuste">¿Cómo expresa tu recibo el ajuste por estrato?</span>
+        <div class="segmento-grupo" role="radiogroup" aria-labelledby="etiqueta-modo-ajuste">
+          <input
+            type="radio"
+            name="modoAjuste"
+            id="modo-ajuste-pesos"
+            value="pesosPorKwh"
+            class="peer sr-only"
+            checked
+          />
+          <label for="modo-ajuste-pesos" class="segmento-etiqueta peer-checked:font-semibold">$/kWh</label>
+          <input type="radio" name="modoAjuste" id="modo-ajuste-porcentaje" value="porcentaje" class="peer sr-only" />
+          <label for="modo-ajuste-porcentaje" class="segmento-etiqueta peer-checked:font-semibold">Porcentaje</label>
+        </div>
+      </div>
+
+      <div id="bloque-ajuste-pesos" class="grupo-campo">
+        <label for="ajustePorKwh" class="etiqueta-campo">Ajuste por estrato ($/kWh)</label>
+        <input
+          type="number"
+          inputmode="decimal"
+          step="any"
+          id="ajustePorKwh"
+          data-campo="ajustePorKwh"
+          class="campo-entrada"
+        />
+        <p class="ayuda-campo">
+          Tu recibo lo muestra como "Subsidio 376,00 x 173". Digita 376 con signo negativo (-376). Negativo =
+          subsidio, positivo = contribución. Así no se desactualiza aunque cambie el costo unitario.
+        </p>
+        <p id="error-ajustePorKwh" data-error-for="ajustePorKwh" class="mensaje-error hidden" role="alert"></p>
+      </div>
+
+      <div id="bloque-ajuste-porcentaje" class="hidden grupo-campo">
         <label for="ajustePorEstratoPct" class="etiqueta-campo">Ajuste por estrato (%)</label>
         <input
           type="number"
@@ -160,6 +194,26 @@ import { OPCIONES_ESTRATO } from '@/data/estratos';
         />
         <p class="ayuda-campo">Negativo = subsidio, positivo = contribución. Precargado según el estrato; cámbialo si tu recibo dice otra cosa.</p>
         <p id="error-ajustePorEstratoPct" data-error-for="ajustePorEstratoPct" class="mensaje-error hidden" role="alert"></p>
+        <div
+          id="aviso-ajuste-desactualizado"
+          class="hidden mt-2 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-300"
+          role="status"
+        >
+          <div class="flex items-start gap-2">
+            <p class="flex-1">
+              Cambiaste el costo unitario: este porcentaje puede haber quedado desactualizado frente a tu recibo
+              nuevo. El modo $/kWh no tiene ese problema.
+            </p>
+            <button
+              type="button"
+              id="btn-descartar-aviso-ajuste"
+              class="inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded text-amber-700 hover:underline dark:text-amber-300"
+              aria-label="Descartar aviso"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
       </div>
 
       <div class="grupo-campo mb-0">
