@@ -9,6 +9,17 @@
 /** Estrato socioeconomico colombiano o tarifa comercial. */
 export type Estrato = 1 | 2 | 3 | 4 | 5 | 6 | 'comercial';
 
+/**
+ * Como se expresa el ajuste por estrato.
+ *
+ * Los recibos colombianos publican el subsidio como un descuento absoluto en
+ * $/kWh (ej: "376,00 x 173"), no como porcentaje. Ambas formas son equivalentes
+ * mientras el costo unitario no cambie, pero el CU cambia todos los meses: si el
+ * usuario lo actualiza y deja el porcentaje viejo, el calculo se desvia en
+ * silencio. Por eso `pesosPorKwh` es la forma robusta y la preferida.
+ */
+export type ModoAjuste = 'porcentaje' | 'pesosPorKwh';
+
 /** Datos que el usuario digita manualmente en la v1. */
 export interface EntradaFactura {
   /** Lectura acumulada del medidor al cierre del ciclo anterior, en kWh. */
@@ -33,6 +44,20 @@ export interface EntradaFactura {
    * Ej: -50 significa 50% de descuento sobre el kWh.
    */
   ajustePorEstratoPct: number;
+  /**
+   * Como interpretar el ajuste por estrato. Si se omite, se asume
+   * `'porcentaje'` y se usa `ajustePorEstratoPct` (comportamiento historico).
+   */
+  modoAjuste?: ModoAjuste;
+  /**
+   * Ajuste absoluto sobre el costo unitario, en $/kWh. Solo se usa cuando
+   * `modoAjuste` es `'pesosPorKwh'`.
+   *
+   * Mismo criterio de signo que `ajustePorEstratoPct`: negativo = subsidio,
+   * positivo = contribucion. Un recibo que dice "Subsidio 376,00" se digita
+   * como `-376`.
+   */
+  ajustePorKwh?: number;
   /**
    * Tope mensual de consumo de subsistencia en kWh, hasta donde aplica el subsidio.
    * 130 kWh si el municipio esta a 1000 m.s.n.m. o mas, 173 kWh si esta por debajo.

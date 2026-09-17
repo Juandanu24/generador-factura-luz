@@ -10,6 +10,25 @@
 import type { DesgloseFactura, EntradaFactura, ErrorValidacion } from '@/lib/types';
 
 /**
+ * Reduce el ajuste por estrato a un unico valor en $/kWh, sin importar como lo
+ * haya digitado el usuario.
+ *
+ * En modo porcentaje el resultado es `CU * pct/100`, que es identico a la
+ * formula anterior: `CU * (1 + pct/100) === CU + CU * pct/100`. En modo
+ * `pesosPorKwh` el valor se usa tal cual y deja de depender del CU, que es el
+ * punto: el recibo publica el subsidio en $/kWh y asi no se desactualiza
+ * cuando cambia la tarifa.
+ *
+ * Signo: negativo = subsidio, positivo = contribucion.
+ */
+export function ajusteEfectivoPorKwh(entrada: EntradaFactura): number {
+  if (entrada.modoAjuste === 'pesosPorKwh' && entrada.ajustePorKwh !== undefined) {
+    return entrada.ajustePorKwh;
+  }
+  return entrada.costoUnitarioKwh * (entrada.ajustePorEstratoPct / 100);
+}
+
+/**
  * Valida los datos digitados por el usuario y devuelve la lista de errores
  * encontrados (vacia si todo esta bien). Los mensajes estan en espaniol,
  * listos para mostrar al usuario final.
@@ -111,6 +130,22 @@ export function validarEntrada(entrada: EntradaFactura): ErrorValidacion[] {
     });
   }
 
+  if (entrada.modoAjuste === 'pesosPorKwh') {
+    if (entrada.ajustePorKwh === undefined || !Number.isFinite(entrada.ajustePorKwh)) {
+      errores.push({
+        campo: 'ajustePorKwh',
+        mensaje: 'Ingresa el subsidio o la contribucion en pesos por kWh.',
+      });
+    } else if (entrada.ajustePorKwh < 0 && Math.abs(entrada.ajustePorKwh) > entrada.costoUnitarioKwh) {
+      // Un subsidio mayor que el CU dejaria el kWh a precio negativo: la
+      // empresa te estaria pagando por consumir.
+      errores.push({
+        campo: 'ajustePorKwh',
+        mensaje: 'El subsidio no puede ser mayor que el costo unitario del kWh.',
+      });
+    }
+  }
+
   if (
     entrada.fechaInicioCiclo &&
     entrada.fechaLectura &&
@@ -147,25 +182,29 @@ export function calcularConsumo(entrada: EntradaFactura): number {
  */
 export function calcularFactura(entrada: EntradaFactura, consumoKwh?: number): DesgloseFactura {
   const consumo = consumoKwh ?? calcularConsumo(entrada);
-  const { costoUnitarioKwh: cu, ajustePorEstratoPct: pct, consumoSubsistenciaKwh } = entrada;
+  const { costoUnitarioKwh: cu, consumoSubsistenciaKwh } = entrada;
 
   const tramoSubsidiado = Math.min(consumo, consumoSubsistenciaKwh);
   const tramoPleno = Math.max(0, consumo - consumoSubsistenciaKwh);
+
+  // Un solo ajuste en $/kWh, venga digitado como porcentaje o como pesos.
+  const ajuste = ajusteEfectivoPorKwh(entrada);
 
   let energiaSubsidiada: number;
   let energiaPlena: number;
   let ajusteEstrato: number;
 
-  if (pct < 0) {
-    // Subsidio: solo aplica sobre el tramo de subsistencia.
-    energiaSubsidiada = tramoSubsidiado * cu * (1 + pct / 100);
+  if (ajuste < 0) {
+    // Subsidio: solo aplica sobre el tramo de subsistencia. El excedente se
+    // cobra a tarifa plena.
+    energiaSubsidiada = tramoSubsidiado * (cu + ajuste);
     energiaPlena = tramoPleno * cu;
-    ajusteEstrato = tramoSubsidiado * cu * (pct / 100);
-  } else if (pct > 0) {
+    ajusteEstrato = tramoSubsidiado * ajuste;
+  } else if (ajuste > 0) {
     // Contribucion: aplica sobre todo el consumo.
-    energiaSubsidiada = tramoSubsidiado * cu * (1 + pct / 100);
-    energiaPlena = tramoPleno * cu * (1 + pct / 100);
-    ajusteEstrato = consumo * cu * (pct / 100);
+    energiaSubsidiada = tramoSubsidiado * (cu + ajuste);
+    energiaPlena = tramoPleno * (cu + ajuste);
+    ajusteEstrato = consumo * ajuste;
   } else {
     // Estrato 4: tarifa plena, sin ajuste.
     energiaSubsidiada = tramoSubsidiado * cu;

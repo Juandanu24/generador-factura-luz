@@ -97,8 +97,32 @@ export function entradaPorDefecto(hoy: Date = new Date()): EntradaFactura {
     estrato: RECIBO_REFERENCIA.estrato,
     costoUnitarioKwh: RECIBO_REFERENCIA.costoUnitarioKwh,
     ajustePorEstratoPct: RECIBO_REFERENCIA.ajustePorEstratoPct,
+    // Por defecto se usa el descuento en $/kWh, que es como lo publica el
+    // recibo y no se desactualiza cuando cambia la tarifa (issue #17).
+    modoAjuste: 'pesosPorKwh',
+    ajustePorKwh: -RECIBO_REFERENCIA.subsidioPorKwh,
     consumoSubsistenciaKwh: RECIBO_REFERENCIA.consumoSubsistenciaKwh,
     alumbradoPublicoPct: RECIBO_REFERENCIA.alumbradoPublicoPct,
     valorAseo: RECIBO_REFERENCIA.valorAseo,
   };
+}
+
+/**
+ * Convierte un ajuste porcentual a su equivalente en $/kWh para un CU dado.
+ *
+ * Sirve para que la UI pueda precargar un valor razonable en pesos cuando el
+ * usuario cambia de estrato (la tabla `AJUSTE_POR_ESTRATO` esta en porcentaje)
+ * o cuando alterna entre los dos modos sin perder lo que llevaba digitado.
+ */
+export function pctAPesosPorKwh(pct: number, costoUnitarioKwh: number): number {
+  return costoUnitarioKwh * (pct / 100);
+}
+
+/**
+ * Convierte un ajuste en $/kWh a su equivalente porcentual para un CU dado.
+ * Devuelve 0 si el CU no es utilizable, para no producir Infinity ni NaN.
+ */
+export function pesosPorKwhAPct(pesosPorKwh: number, costoUnitarioKwh: number): number {
+  if (!costoUnitarioKwh) return 0;
+  return (pesosPorKwh / costoUnitarioKwh) * 100;
 }

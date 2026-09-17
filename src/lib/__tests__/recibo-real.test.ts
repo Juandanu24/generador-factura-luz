@@ -19,7 +19,7 @@
  * mal: esta es la unica verificacion del proyecto contra una fuente real.
  */
 import { describe, expect, it } from 'vitest';
-import { calcularFactura } from '@/lib/calculo';
+import { calcularFactura, validarEntrada } from '@/lib/calculo';
 import { RECIBO_REFERENCIA } from '@/data/estratos';
 import type { EntradaFactura } from '@/lib/types';
 
@@ -80,5 +80,51 @@ describe('recibo real de Afinia, Monteria, estrato 2', () => {
     expect(RECIBO_REFERENCIA.alumbradoPublicoPct).toBe(13);
     expect(RECIBO_REFERENCIA.valorAseo).toBe(39490);
     expect(RECIBO_REFERENCIA.consumoSubsistenciaKwh).toBe(SUBSISTENCIA);
+  });
+});
+
+describe('el mismo recibo digitado en $/kWh (issue #17)', () => {
+  const enPesos: EntradaFactura = {
+    ...recibo,
+    modoAjuste: 'pesosPorKwh',
+    // El recibo dice "Subsidio 376,00 x 173". Se digita tal cual, negativo.
+    ajustePorKwh: -SUBSIDIO_POR_KWH,
+    // Deliberadamente incoherente: si el motor lo mirara, el resultado cambiaria.
+    ajustePorEstratoPct: 0,
+  };
+
+  it('da exactamente el mismo desglose que el modo porcentaje', () => {
+    const enPct = calcularFactura(recibo);
+    const d = calcularFactura(enPesos);
+    expect(d.costoEnergia).toBeCloseTo(enPct.costoEnergia, 6);
+    expect(d.ajusteEstrato).toBeCloseTo(-65048, 6);
+    expect(d.total).toBeCloseTo(enPct.total, 6);
+  });
+
+  it('ignora ajustePorEstratoPct cuando el modo es pesosPorKwh', () => {
+    // ajustePorEstratoPct es 0 aqui; si el motor lo usara no habria subsidio.
+    expect(calcularFactura(enPesos).ajusteEstrato).not.toBe(0);
+  });
+
+  it('sobrevive un cambio de tarifa sin quedar desactualizado', () => {
+    // Este es el punto del issue #17: al subir el CU, el subsidio en $/kWh
+    // sigue siendo el que dice el recibo, mientras que un porcentaje viejo
+    // inflaria el descuento en proporcion al CU nuevo.
+    const cuNuevo = 1100;
+    const conPesos = calcularFactura({ ...enPesos, costoUnitarioKwh: cuNuevo });
+    const conPctViejo = calcularFactura({ ...recibo, costoUnitarioKwh: cuNuevo });
+
+    expect(conPesos.ajusteEstrato).toBeCloseTo(-65048, 2); // no se movio
+    expect(Math.abs(conPctViejo.ajusteEstrato)).toBeGreaterThan(65048); // se inflo
+  });
+
+  it('rechaza un subsidio mayor que el costo unitario', () => {
+    const errores = validarEntrada({ ...enPesos, ajustePorKwh: -2000 });
+    expect(errores.some((e) => e.campo === 'ajustePorKwh')).toBe(true);
+  });
+
+  it('exige el valor cuando el modo es pesosPorKwh', () => {
+    const errores = validarEntrada({ ...enPesos, ajustePorKwh: undefined });
+    expect(errores.some((e) => e.campo === 'ajustePorKwh')).toBe(true);
   });
 });
