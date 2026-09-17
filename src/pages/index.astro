@@ -1,0 +1,23 @@
+---
+import Layout from '../layouts/Layout.astro';
+import FormularioConsumo from '../components/FormularioConsumo.astro';
+import PanelResultados from '../components/PanelResultados.astro';
+---
+
+<Layout>
+  <main class="mx-auto max-w-md px-4 pb-10 pt-6 sm:max-w-lg">
+    <header class="mb-5">
+      <h1 class="text-xl font-extrabold text-slate-900 dark:text-slate-100">¿Cuánto voy en la factura de luz?</h1>
+      <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">
+        Digita lo que ves en el medidor y calculamos, al instante, cuánto llevas y cuánto vas a pagar.
+      </p>
+    </header>
+
+    <FormularioConsumo />
+    <PanelResultados />
+  </main>
+
+  <script>
+    import '@/scripts/app.ts';
+  </script>
+</Layout>

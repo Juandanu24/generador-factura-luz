@@ -1,0 +1,89 @@
+---
+interface Props {
+  /** Prefijo de los ids de esta instancia, p. ej. "proyectado" o "a-la-fecha". */
+  prefijo: string;
+  /** Título visible de la sección. */
+  titulo: string;
+  /** Si es true, la sección se envuelve en un <details> colapsable cerrado por defecto. */
+  colapsable?: boolean;
+}
+
+const { prefijo, titulo, colapsable = false } = Astro.props;
+
+const filasSimples: Array<{ id: string; etiqueta: string }> = [
+  { id: 'consumo', etiqueta: 'Consumo' },
+  { id: 'energia', etiqueta: 'Energía' },
+];
+
+const filasFinales: Array<{ id: string; etiqueta: string }> = [
+  { id: 'alumbrado', etiqueta: 'Alumbrado público' },
+  { id: 'aseo', etiqueta: 'Aseo' },
+];
+---
+
+{
+  colapsable ? (
+    <details class="group">
+      <summary class="marker:content-none flex min-h-11 cursor-pointer list-none items-center justify-between gap-2 text-sm font-semibold text-slate-700 [&::-webkit-details-marker]:hidden dark:text-slate-200">
+        <span>{titulo}</span>
+        <svg class="icono-plegable h-4 w-4" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+          <path
+            d="M5 7.5 10 12.5 15 7.5"
+            stroke="currentColor"
+            stroke-width="1.6"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+      </summary>
+      <div class="mt-2 divide-y divide-slate-100 dark:divide-slate-800">
+        {filasSimples.map((fila) => (
+          <div class="fila-desglose">
+            <span>{fila.etiqueta}</span>
+            <span id={`${prefijo}-${fila.id}`}>—</span>
+          </div>
+        ))}
+        <div class="fila-desglose" id={`${prefijo}-ajuste-fila`}>
+          <span id={`${prefijo}-ajuste-etiqueta`}>Ajuste por estrato</span>
+          <span id={`${prefijo}-ajuste`}>—</span>
+        </div>
+        {filasFinales.map((fila) => (
+          <div class="fila-desglose">
+            <span>{fila.etiqueta}</span>
+            <span id={`${prefijo}-${fila.id}`}>—</span>
+          </div>
+        ))}
+        <div class="fila-desglose-total">
+          <span>Total</span>
+          <span id={`${prefijo}-total`}>—</span>
+        </div>
+      </div>
+    </details>
+  ) : (
+    <div>
+      <h3 class="mb-2 text-sm font-semibold text-slate-700 dark:text-slate-200">{titulo}</h3>
+      <div class="divide-y divide-slate-100 dark:divide-slate-800">
+        {filasSimples.map((fila) => (
+          <div class="fila-desglose">
+            <span>{fila.etiqueta}</span>
+            <span id={`${prefijo}-${fila.id}`}>—</span>
+          </div>
+        ))}
+        <div class="fila-desglose" id={`${prefijo}-ajuste-fila`}>
+          <span id={`${prefijo}-ajuste-etiqueta`}>Ajuste por estrato</span>
+          <span id={`${prefijo}-ajuste`}>—</span>
+        </div>
+        {filasFinales.map((fila) => (
+          <div class="fila-desglose">
+            <span>{fila.etiqueta}</span>
+            <span id={`${prefijo}-${fila.id}`}>—</span>
+          </div>
+        ))}
+        <div class="fila-desglose-total">
+          <span>Total</span>
+          <span id={`${prefijo}-total`}>—</span>
+        </div>
+      </div>
+    </div>
+  )
+}
